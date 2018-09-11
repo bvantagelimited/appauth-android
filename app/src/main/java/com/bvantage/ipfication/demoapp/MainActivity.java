@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.ColorRes;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.customtabs.CustomTabsIntent;
@@ -13,8 +14,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bvantage.ipfication.demoapp.network.Service;
 import com.bvantage.ipfication.demoapp.request.OauthRequest;
 import com.bvantage.ipfication.demoapp.response.OauthResponse;
@@ -56,12 +60,39 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+        );
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.btIPLogin).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loginviaIPification();
+
+                MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this)
+                        .title(R.string.your_title)
+                        .content(R.string.your_message)
+                        .positiveText(R.string.agree)
+                        .negativeText(R.string.disagree)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                                loginviaIPification();
+                            }
+                        })
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        ;
+                MaterialDialog dialog = builder.build();
+                dialog.show();
+
+
+
             }
         });
     }
@@ -95,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
                 request,
                 intentBuilder.build());
         startActivityForResult(intent, RC_AUTH);
-
     }
 
 
@@ -105,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == -1){
+            findViewById(R.id.loading_container).setVisibility(View.VISIBLE);
             // the stored AuthState is incomplete, so check if we are currently receiving the result of
             // the authorization flow from the browser.
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
@@ -198,11 +229,13 @@ public class MainActivity extends AppCompatActivity {
                     gotoUserActivity("TH");
                 }else{
                     Toast.makeText(getApplicationContext(), "Error: "+ response.code() + response.errorBody(), Toast.LENGTH_LONG).show();
+                    findViewById(R.id.loading_container).setVisibility(View.GONE);
                 }
             }
 
             @Override
             public void onFailure(Call<OauthResponse> call, Throwable t) {
+                findViewById(R.id.loading_container).setVisibility(View.GONE);
                 Toast.makeText(getApplicationContext(), "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 Log.d("service","onFailure " + t.getMessage());
             }
@@ -212,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void gotoUserActivity(String preferred_username) {
+        findViewById(R.id.loading_container).setVisibility(View.GONE);
         Intent intent = new Intent(this, UserActivity.class);
         Bundle bundle = new Bundle();
         bundle.putString("preferred_username",preferred_username);

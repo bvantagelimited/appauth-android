@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">IPIFICATION SAMPLE</string>
+    <string name="app_name">IPIFICATION DEMO</string>
+    <string name="your_title">IPIFICATION</string>
+    <string name="your_message">Mobile ID is the form of identification provided by your Network oPerator. It represents convenient and secure way for easier login.\n\nBy tapping \"Accept\", you agree to the Terms of Service</string>
+    <string name="agree">Agree</string>
+    <string name="disagree">Disagree</string>
 </resources>
